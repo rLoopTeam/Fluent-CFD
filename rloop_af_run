@@ -1,0 +1,73 @@
+rc mshFileName
+;
+mesh repair-improve iq
+;
+;models
+;
+define models energy yes yes yes
+define models viscous kw-sst yes
+define materials cc air air yes ideal-gas no no no no no no
+define oc op 861.8447
+;
+;define zones
+;
+define bc zt body wall
+define bc zt floor wall
+define bc zt wall wall
+define bc zt inlet velocity-inlet
+define bc zt outlet pressure-outlet
+;
+;bcs
+;
+define bc wall floor 0 no 0 no no no 0 no yes motion-bc-moving no yes no 40 1 0 0 no no 0 no 0.5 no 1
+define bc wall wall 0 no 0 no no no 0 no yes motion-bc-moving no yes no 40 1 0 0 no no 0 no 0.5 no 1
+define bc velocity-inlet inlet no no yes yes no 40 no 0 no 300 no no yes 1 10
+define bc pressure-outlet outlet no 0 no 300 no yes no no yes 1 10 no no no
+;
+;ref values
+;
+report reference-values velocity 40
+report reference-values density 0.01
+report reference-values area 1
+;
+; discretization
+;
+solve set p-v-coupling 24
+solve set discretization-scheme k 1
+solve set discretization-scheme omega 1
+;
+;pseudo-transient
+solve set pseudo-transient yes yes 1 1 0
+solve set prf temperature 0.5
+solve set p-v-controls 0.1 0.1
+;
+;true-steady
+;solve set p-v-controls 10 0.1 0.1
+;solve set ur temperature 0.5
+;
+;monitors
+solve monitors force set-drag-monitor cd yes body () yes yes cd_history.csv yes 2 no 1 0 0 
+solve monitors force set-lift-monitor cl yes body () yes yes cl_history.csv yes 3 no 0 0 1
+solve monitors force set-lift-monitor cs yes body () yes yes cs_history.csv yes 4 no 0 1 0
+solve monitors volume set-monitor max_mach "Max" mach-number fluid-1 () yes 5 yes yes max_mach_history.csv 1
+;
+;residual
+;
+solve monitors residual criterion-type 3
+;
+;
+solve initialize compute-defaults velocity-inlet inlet
+solve initialize list-defaults
+solve initialize if
+;
+mesh check
+mesh quality
+;
+it 1000
+;
+wcd mshNameNoExt
+exit
+yes
+
+
+

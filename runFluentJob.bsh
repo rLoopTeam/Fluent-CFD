@@ -1,0 +1,34 @@
+#!/bin/bash
+
+#PBS -l walltime=10:00:00
+#PBS -q hdutil-low
+
+cd $PBS_O_WORKDIR
+
+#get the mesh filename
+mshFileName=`ls -tr *.msh | tail -1`
+#get the mesh filename with no extension
+mshNameNoExt=`ls -tr *.msh | tail -1|sed s/".msh"//g`
+
+#echo the nodes to a logfile
+echo $PBS_NODEFILE > "AF_.o"$PBS_JOBID
+
+#set licenses
+export ANSYSLMD_LICENSE_FILE="1055@beltenebros.ddns.net"
+export LM_LICENSE_FILE="1055@beltenebros.ddns.net"
+
+#get the number of processors
+np=`wc -l $PBS_NODEFILE | awk '{print $1'}`
+
+#replace the journal file with the correct mesh filenames
+sed -i s/"mshFileName"/"$mshFileName"/g rloop_af_run
+sed -i s/"mshNameNoExt"/"$mshNameNoExt"/g rloop_af_run
+
+#run fluent
+/global/biomds/software/ANSYS/16.1/v161/fluent/bin/fluent 3ddp -t$np -g -cnf=$PBS_NODEFILE -i rloop_af_run | tee "AF_.o"$PBS_JOBID
+
+#plot the monitored results
+/usr/bin/gnuplot /global/biomds/users/rloop/michaele/bin/plotFluentForces
+
+#comrpess the cas and dat files
+tar czf $mshNameNoExt".tar.gz" $mshNameNoExt".cas" $mshNameNoExt".dat"

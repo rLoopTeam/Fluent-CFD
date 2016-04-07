@@ -1,0 +1,18 @@
+set term png
+set nokey
+set xlabel "Iteration"
+set ylabel "Cd"
+set output "cd_history.png"
+plot 'cd_history.csv' using 1:2 with lines
+
+set ylabel "Cl"
+set output "cl_history.png"
+plot 'cl_history.csv' using 1:2 with lines
+
+set ylabel "Cs"
+set output "cs_history.png"
+plot 'cs_history.csv' using 1:2 with lines
+
+set ylabel "Maximum Mach Number"
+set output "max_mach_history.png"
+plot 'max_mach_history.csv' using 1:2 with lines
