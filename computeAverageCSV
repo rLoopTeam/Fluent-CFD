@@ -1,0 +1,5 @@
+#!/bin/bash
+csv=`ls *.csv | grep -v "averageValues"`
+for f in $csv; do
+        /global/biomds/users/rloop/michaele/bin/getAveragedMonitorValues.py "$f" >> averageValues.csv
+done

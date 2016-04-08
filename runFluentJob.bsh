@@ -30,5 +30,11 @@ sed -i s/"mshNameNoExt"/"$mshNameNoExt"/g rloop_af_run
 #plot the monitored results
 /usr/bin/gnuplot /global/biomds/users/rloop/michaele/bin/plotFluentForces
 
+#get averages
+csv=`ls *.csv | grep -v "averageValues"`
+for f in $csv; do
+	/global/biomds/users/rloop/michaele/bin/getAveragedMonitorValues.py "$f" >> averageValues.csv
+done
+
 #comrpess the cas and dat files
 tar czf $mshNameNoExt".tar.gz" $mshNameNoExt".cas" $mshNameNoExt".dat"
