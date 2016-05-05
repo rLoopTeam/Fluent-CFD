@@ -1,0 +1,39 @@
+#!/bin/bash
+
+#PBS -l walltime=10:00:00
+#PBS -q hdutil-low
+
+cd $PBS_O_WORKDIR
+
+#echo the nodes to a logfile
+echo $PBS_NODEFILE > "AF_.o"$PBS_JOBID
+
+#get the number of processors
+np=`wc -l $PBS_NODEFILE | awk '{print $1'}`
+
+# update subdomanin count
+matchString=`grep numberOfSubdomains system/decomposeParDict`
+sed -i.bak "s/$matchString/numberOfSubdomains $np\;/" system/decomposeParDict
+
+# setup OpenFoam environment variables
+. /global/biomds/software/OpenFOAM/3.0.1/OpenFOAM-3.0.1/etc/bashrc
+. /global/biomds/software/intel2015/composer_xe_2015.0.090/bin/compilervars.sh intel64
+. /global/biomds/software/intel2015/impi/5.0.1.035/bin64/mpivars.sh
+
+#run blockMesh
+rm -rf constant/polyMesh/*
+blockMesh 2>&1 | tee meshlog.log
+surfaceFeatureExtract 2>&1 | tee -a meshlog.log
+
+# run snappyHexMesh
+rm -rf processor*
+decomposePar -force 2>&1 | tee -a meshlog.log
+mpirun -np $np -machinefile $PBS_NODEFILE snappyHexMesh -parallel -overwrite 2>&1 | tee -a meshlog.log
+reconstructParMesh -noZero -constant 2>&1 | tee -a meshlog.log
+
+# run checkMesh
+checkMesh | tee checkMesh.log
+sed -i.bak s/empty/wall/g constant/polyMesh/boundary
+
+# convert mesh to Fluent format
+foamMeshToFluent
