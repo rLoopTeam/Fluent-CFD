@@ -36,4 +36,5 @@ checkMesh | tee checkMesh.log
 sed -i.bak s/empty/wall/g constant/polyMesh/boundary
 
 # convert mesh to Fluent format
-foamMeshToFluent
+rm -rf fluentInterface
+foamMeshToFluent 2>&1 | tee -a foamToFluent.log
